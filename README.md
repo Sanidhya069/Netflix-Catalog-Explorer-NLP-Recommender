@@ -10,6 +10,13 @@ Instead of relying on basic keyword searches, this tool uses Natural Language Pr
 * **Dynamic Data Dashboard:** Visualizes catalog metrics, including Movie vs. TV Show ratios and top producing countries, using responsive bar charts.
 * **Persistent Search:** Utilizes session states to ensure search results remain visible while navigating and interacting with other dashboard elements.
 
+### Application Preview
+**The Recommender Engine:**
+![Recommender Engine](images/recommender.png)
+
+**The Global Dashboard:**
+![Catalog Dashboard](images/dashboard.png)
+
 ## 🛠️ Tech Stack
 * **Language:** Python
 * **Frontend/UI:** Streamlit

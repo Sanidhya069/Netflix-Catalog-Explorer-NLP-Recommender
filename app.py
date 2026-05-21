@@ -20,6 +20,17 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 DATA_PATH = Path(__file__).resolve().parent / "netflix_titles.csv"
 
+# New CSV headers (netflix_titles.csv): Title, Summary, Genre, Tags, Series or Movie, …
+NEW_SCHEMA = {
+    "title": "Title",
+    "description": "Summary",
+    "genre": "Genre",
+    "tags": "Tags",
+    "type": "Series or Movie",
+    "release_date": "Netflix Release Date",
+}
+LEGACY_SCHEMA = {"title", "description", "listed_in"}
+
 
 def _combine_text(row: pd.Series) -> str:
     parts = [
@@ -30,17 +41,56 @@ def _combine_text(row: pd.Series) -> str:
     return text if text else "no description"
 
 
+def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Map new or legacy CSV columns to canonical names used by the app."""
+    df = df.copy()
+    cols = set(df.columns)
+
+    if NEW_SCHEMA["title"] in cols:
+        df["title"] = df[NEW_SCHEMA["title"]].fillna("").astype(str)
+        df["description"] = (
+            df[NEW_SCHEMA["description"]].fillna("").astype(str)
+            if NEW_SCHEMA["description"] in cols
+            else ""
+        )
+        genre = (
+            df[NEW_SCHEMA["genre"]].fillna("").astype(str)
+            if NEW_SCHEMA["genre"] in cols
+            else ""
+        )
+        tags = (
+            df[NEW_SCHEMA["tags"]].fillna("").astype(str)
+            if NEW_SCHEMA["tags"] in cols
+            else ""
+        )
+        df["listed_in"] = (genre + " " + tags).str.strip()
+        if NEW_SCHEMA["type"] in cols:
+            df["type"] = df[NEW_SCHEMA["type"]]
+        if NEW_SCHEMA["release_date"] in cols:
+            df["release_year"] = pd.to_datetime(
+                df[NEW_SCHEMA["release_date"]], errors="coerce"
+            ).dt.year
+        elif "Release Date" in cols:
+            df["release_year"] = pd.to_datetime(
+                df["Release Date"], errors="coerce"
+            ).dt.year
+        return df
+
+    if LEGACY_SCHEMA.issubset(cols):
+        df["title"] = df["title"].fillna("").astype(str)
+        df["description"] = df["description"].fillna("").astype(str)
+        df["listed_in"] = df["listed_in"].fillna("").astype(str)
+        return df
+
+    raise ValueError(
+        "Unrecognized CSV schema. Expected new columns "
+        f"{list(NEW_SCHEMA.values())} or legacy columns {sorted(LEGACY_SCHEMA)}."
+    )
+
+
 @st.cache_data(show_spinner="Loading dataset and building TF-IDF index…")
 def load_data_and_index(csv_path: str) -> tuple[pd.DataFrame, TfidfVectorizer, sparse.spmatrix]:
-    df = pd.read_csv(csv_path)
-    needed = {"title", "description", "listed_in"}
-    missing = needed - set(df.columns)
-    if missing:
-        raise ValueError(f"CSV missing required columns: {sorted(missing)}")
-
-    df = df.copy()
-    df["description"] = df["description"].fillna("")
-    df["listed_in"] = df["listed_in"].fillna("")
+    df = _normalize_columns(pd.read_csv(csv_path))
     df["_search_text"] = df.apply(_combine_text, axis=1)
 
     vectorizer = TfidfVectorizer(
@@ -82,7 +132,7 @@ def fetch_tmdb_data(title: str, media_type: str, release_year: str, api_key: str
     if not api_key:
         return None, None
 
-    is_movie = str(media_type).lower() == "movie"
+    is_movie = str(media_type).strip().lower() in ("movie",)
     endpoint = "movie" if is_movie else "tv"
     url = f"https://api.themoviedb.org/3/search/{endpoint}"
     
@@ -200,7 +250,7 @@ except Exception as e:
 
 st.title("Netflix catalog explorer")
 st.caption(
-    "Content-based recommendations using TF-IDF over **description** and **listed_in** (genres). "
+    "Content-based recommendations using TF-IDF over **Summary**, **Genre**, and **Tags**. "
     "Open **Dashboard** in the sidebar for catalog metrics and charts."
 )
 

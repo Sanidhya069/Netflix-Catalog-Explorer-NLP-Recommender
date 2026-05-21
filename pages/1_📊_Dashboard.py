@@ -10,7 +10,12 @@ DATA_PATH = Path(__file__).resolve().parent.parent / "netflix_titles.csv"
 
 @st.cache_data(show_spinner="Loading dataset…")
 def load_data(csv_path: str) -> pd.DataFrame:
-    return pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path)
+    if "Title" in df.columns:
+        df = df.copy()
+        df["type"] = df.get("Series or Movie")
+        df["country"] = df.get("Country Availability")
+    return df
 
 
 st.markdown(
@@ -38,7 +43,7 @@ except Exception as e:
 
 type_counts = df["type"].value_counts() if "type" in df.columns else pd.Series(dtype=int)
 n_movies = int(type_counts.get("Movie", 0))
-n_shows = int(type_counts.get("TV Show", 0))
+n_shows = int(type_counts.get("Series", 0) + type_counts.get("TV Show", 0))
 n_total = len(df)
 
 c1, c2, c3 = st.columns(3)
@@ -73,17 +78,21 @@ with oc2:
         st.info("No `country` column.")
 
 with st.expander("Raw data preview"):
-    show_cols = [
-        c
-        for c in [
-            "title",
-            "type",
-            "release_year",
-            "rating",
-            "country",
-            "listed_in",
-            "description",
-        ]
-        if c in df.columns
+    preferred = [
+        "Title",
+        "Series or Movie",
+        "Genre",
+        "Tags",
+        "Country Availability",
+        "View Rating",
+        "Summary",
+        "title",
+        "type",
+        "release_year",
+        "rating",
+        "country",
+        "listed_in",
+        "description",
     ]
+    show_cols = [c for c in preferred if c in df.columns]
     st.dataframe(df[show_cols].head(50), use_container_width=True, hide_index=True)

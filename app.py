@@ -274,18 +274,19 @@ if submitted:
         st.session_state.pop("rec_pack", None)
         st.info("Enter a search query to see recommendations.")
     else:
-        idx, scores = recommend(vectorizer, tfidf_matrix, query, top_n=top_n)
-        if len(idx) == 0:
-            st.session_state.pop("rec_pack", None)
-            st.warning("No results.")
-        else:
-            st.session_state["rec_pack"] = (idx.tolist(), scores.tolist(), query)
+        with st.spinner("Analyzing semantic matches..."):
+            idx, scores = recommend(vectorizer, tfidf_matrix, query, top_n=top_n)
+            if len(idx) == 0:
+                st.session_state.pop("rec_pack", None)
+                st.warning("No results.")
+            else:
+                st.session_state["rec_pack"] = (idx.tolist(), scores.tolist(), query)
 
 rec_pack = st.session_state.get("rec_pack")
 if rec_pack is not None:
     idx_list, score_list, _q = rec_pack
-    st.caption(f"Showing {len(idx_list)} matches (cosine similarity × 100).")
-    
+    st.caption(f"Found {len(idx_list)} highly relevant matches.")
+
     cols_per_row = 4
     for i in range(0, len(idx_list), cols_per_row):
         cols = st.columns(cols_per_row)

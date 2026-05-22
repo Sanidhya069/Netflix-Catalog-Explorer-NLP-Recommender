@@ -287,6 +287,20 @@ if rec_pack is not None:
     idx_list, score_list, _q = rec_pack
     st.caption(f"Found {len(idx_list)} highly relevant matches.")
 
+    # 1. Grab the actual rows for the recommended movies
+    matched_df = df.iloc[idx_list]
+
+    # 2. Convert to CSV (Ensure column names match your Kaggle dataset, e.g., 'Title', 'Genre', 'Summary')
+    csv_data = matched_df[['title', 'listed_in', 'description']].to_csv(index=False).encode('utf-8')
+
+    # 3. Render the download button
+    st.download_button(
+        label="📥 Export to CSV",
+        data=csv_data,
+        file_name="netflix_matches.csv",
+        mime="text/csv"
+    )
+
     cols_per_row = 4
     for i in range(0, len(idx_list), cols_per_row):
         cols = st.columns(cols_per_row)

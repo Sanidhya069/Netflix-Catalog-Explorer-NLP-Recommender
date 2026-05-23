@@ -99,7 +99,12 @@ if not tmdb_api_key:
     st.sidebar.info(
         "💡 Enter your TMDB API Key to see movie posters and official ratings."
     )
-
+st.sidebar.markdown("---")
+st.sidebar.markdown("### ⚙️ Developer Tools")
+if st.sidebar.button("🧹 Clear App Cache"):
+    st.cache_data.clear()
+    st.sidebar.success("Memory cache cleared! Ready for fresh data.")
+    
 st.markdown(
     """
     <style>

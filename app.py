@@ -104,7 +104,7 @@ st.sidebar.markdown("### ⚙️ Developer Tools")
 if st.sidebar.button("🧹 Clear App Cache"):
     st.cache_data.clear()
     st.sidebar.success("Memory cache cleared! Ready for fresh data.")
-    
+
 st.markdown(
     """
     <style>
@@ -279,3 +279,14 @@ if rec_pack is not None:
                         """,
                         unsafe_allow_html=True
                     )
+
+
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center; color: #888; font-size: 0.85rem; padding: 2rem 0;'>
+        Built by Sanidhya Shrivastava • NLP-Powered Recommendation Engine
+    </div>
+    """, 
+    unsafe_allow_html=True
+)

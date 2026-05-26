@@ -69,4 +69,5 @@ streamlit run app.py
 
 ## 👨‍💻 Author
 
-Sanidhya Shrivastava | [LinkedIn](https://www.linkedin.com/in/sanidhya10/) | [GitHub](https://github.com/Sanidhya069)
+Sanidhya Shrivastava  
+[GitHub](https://github.com/Sanidhya069) • [LinkedIn](https://www.linkedin.com/in/sanidhya10/)
